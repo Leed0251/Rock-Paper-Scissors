@@ -1,28 +1,6 @@
-from msilib import Table
 import random
 import math
 import os
-
-# finds the most frequently chosen object
-# limit of six (set in computer choice function)
-def getMostFrequentValue(list):
-    valfrequency = []
-    
-    for i in range(0,len(list)):
-        found = False
-        for v in range(0,len(valfrequency)):
-            if list[v][0] == i:
-                list[v][1] = list[v][1] + 1
-                found = True
-        if found == False:
-            valfrequency.append([list[i],1])
-    value = ""
-    valuenumber = 0
-    for i in range(0,len(valfrequency)):
-        if valuenumber < valfrequency[i][1]:
-            value = valfrequency[i][0]
-            valuenumber = valfrequency[i][1]
-    return value
 
 # Clears the console output
 def clearConsole():
@@ -31,15 +9,12 @@ def clearConsole():
         command = "cls"
     os.system(command) # Runs the clear command
 
-def ComputerChoice():
-    return GetChoice(random.choice(wins)[0])
-
 def GetChoice(choice):
-    choice = choice.lower()
-    if choice:
-        for i in range(len(wins)):
-            if choice == wins[i][0][0:len(choice)]:
-                return wins[i]
+    choice = choice.lower() # Makes the user input lowercase
+    if choice: # Checks if the user typed something
+        for i in range(len(rps_table)): # Loops through all the responses
+            if choice == rps_table[i][0][0:len(choice)]: # Checks if the input matches with the response
+                return rps_table[i] # Returns the full response
             if choice == "xxx":
                 return "xxx"
         return False
@@ -49,48 +24,49 @@ def GetWinner(user,computer):
     \x1B[90mComputer picked: \x1B[1m{}\x1B[0m
     \x1B[36mPlayer picked: \x1B[1m{}\x1B[0m
     """.format(computer[0],user[0])) # Prints the choices
-    for i in range(len(wins)):
+    for i in range(len(rps_table)): # Loops through the rps_table
         if computer[1] == user[0]:
-            return computer[0]
+            return computer[0] # Computer won
         elif computer[0] == user[1]:
-            return user[0]
+            return user[0] # User won
         elif computer == user:
-            return False
+            return False # Both tied
 
 def GetInput(player):
     error = 'That is not a choice'
     try:
         print('\x1B[0mPlease pick \x1B[90mrock\x1B[0m / \x1B[97mpaper\x1B[0m / \x1B[37mscissors\x1B[0m\x1B[0m or type \x1B[1m\x1B[91m"xxx"\x1B[0m to leave \x1B[3m')
-        user = GetChoice(input(player))
+        user = GetChoice(input(player)) # Gets the users full choice
         if user:
-            return user
+            return user # Returns the choice
         else:
-            print(error)
+            print(error) # Prints the error before asking again
             return GetInput(player)
     except:
-        print(error)
+        print(error) # Prints the error before asking again
         return GetInput(player)
 
 def RoundsToPlay():
     try:
         Number = input("""How many rounds would you like to play? \x1B[90m\x1B[3m0 for Infinite\x1B[0m 
 """)
-        if Number == "":
+        if Number == "": # Checks if the user typed anything, if not return 0
             return 0
-        return int(Number)
-    except:
-        print("\x1B[31mPlease pick a number\x1B[0m")
-        return RoundsToPlay()
+        return int(Number) # Returns the number of games the user wants to play
+    except: # Makes sure the user types a number
+        clearConsole()
+        print("\x1B[31mPlease pick a number\x1B[0m") # Tells the user to pick a number
+        return RoundsToPlay() # Asks the question again
 
 
 def MainGame(mode):
     repeat = ""
-
+    # Variables
     wins = 0
     ties = 0
     loses = 0
     roundsplayed = 0
-
+    # Grabs the variables that are used outside the code for logging
     global total_wins
     global total_ties
     global total_loses
@@ -101,18 +77,19 @@ def MainGame(mode):
     global total_loses_multi
     global total_rounds_multi
 
-    infinite = False
-    roundstoplay = RoundsToPlay()
+    infinite = False # Infinite is off
+
+    roundstoplay = RoundsToPlay() # Gets how many rounds the user wants to play
     clearConsole()
-    if roundstoplay == 0:
-        infinite = True
+    if roundstoplay == 0: # Checks if 0 or nothing
+        infinite = True # Makes the game infinite
         print("""
 \x1B[3mplaying INFINITE
-        \x1B[0m""")
+        \x1B[0m""") # Tells the user they are playing infinite
     user = ""
     computer = ""
 
-    while user != "xxx" and computer != "xxx":
+    while user != "xxx" and computer != "xxx": # Loops until the user says "xxx" or has finished playing
         if infinite == True:
             roundstoplay += 1
         if roundsplayed > roundstoplay-1:
@@ -125,7 +102,7 @@ def MainGame(mode):
             user = GetInput("Player 1: ")
             if user != "xxx":
                 if mode == "Single":
-                    computer = ComputerChoice()
+                    computer = GetChoice(random.choice(rps_table)[0])
                 elif mode == "Multi":
                     clearConsole()
                     computer = GetInput("Player 2: ")
@@ -164,47 +141,15 @@ def MainGame(mode):
 \x1B[31mLoses: {}\x1B[90m\x1B[3m
 Press <enter> to continue\x1B[0m""".format(wins,ties,loses))
     clearConsole()
-    Play()
-
-def Play():
-    game = input("""
-What would you like to play?
-\x1B[32mAvailable modes:\x1B[90m\x1B[3m
-    singleplayer
-    multiplayer
-    \x1B[0m
-    You can type \x1B[31m"quit"\x1B[0m to quit
-""")
-    clearConsole()
-    if game.lower() != "":
-        if game.lower() == "singleplayer"[0:len(game)]:
-            MainGame("Single")
-        elif game.lower() == "multiplayer"[0:len(game)]:
-            MainGame("Multi")
-        elif game.lower() == "quit":
-            confirmation = input("""Are you sure you want to quit?
-""")
-            if confirmation.lower() == "yes"[0:len(confirmation)]:
-                print("""
-    \x1B[31mQuit game\x1B[0m""")
-            else:
-                clearConsole()
-                Play()
-        else:
-            print('"{}" is not an option'.format(game))
-            Play()
-    else:
-        print("Please type something")
-        Play()
-
 
 # ***** MAIN ROUTINE STARTS HERE ******
-wins = [
+rps_table = [
     ["rock","scissors"],
     ["paper","rock"],
     ["scissors","paper"]
 ]
 
+# All variables required for the game
 total_wins = 0
 total_ties = 0
 total_loses = 0
@@ -216,14 +161,45 @@ total_loses_multi = 0
 total_rounds = 0
 total_rounds_multi = 0
 
+game = 0
+
 clearConsole() # Clears any visible code while starting up
-Play()
+while game != "quit": # Starts a loop until the user says they want to quit
+    game = input("""
+    What would you like to play?
+\x1B[32mAvailable modes:\x1B[90m\x1B[3m
+    singleplayer
+    multiplayer
+    \x1B[0m
+You can type \x1B[31m"quit"\x1B[0m to quit
+    """)
+    clearConsole()
+    if game.lower() != "":
+        if game.lower() == "singleplayer"[0:len(game)]:
+            MainGame("Single") # Starts a singleplayer game
+        elif game.lower() == "multiplayer"[0:len(game)]:
+            MainGame("Multi") # Starts a multiplayer game
+        elif game.lower() == "quit": # Confirms if the user actually wants to quit+
+            confirmation = input("""Are you sure you want to quit?
+""") 
+            if confirmation.lower() == "yes"[0:len(confirmation)]:
+                print("""
+\x1B[31mQuit game\x1B[0m""")
+            else:
+                clearConsole()
+                continue # Goes to the start of the loop
+        else:
+            print('"{}" is not an option'.format(game))
+            continue
+    else:
+        print("Please type something")
+        continue
 clearConsole()
 
 # Displays the users stats
 print("\x1B[1m******* COMPLETE SUMMARY *******\x1B[0m")
-if total_rounds > 0:
-    accuracy = math.ceil(((total_wins+(total_ties/2))/total_rounds) * 100)
+if total_rounds > 0: # Checks if the player has played singleplayer
+    accuracy = math.ceil(((total_wins+(total_ties/2))/total_rounds) * 100) 
     print("""
 ******* SINGLE PLAYER *******
     \x1B[32mTotal Wins: {} 
@@ -233,7 +209,7 @@ if total_rounds > 0:
 \x1B[97mAccuracy: {}%
 Total Rounds: {}""".format(total_wins,total_ties,total_loses,accuracy,total_rounds))
 
-if total_rounds_multi > 0:
+if total_rounds_multi > 0: # Checks if the player has played multiplayer
     accuracy_multi = math.ceil(((total_wins_multi+(total_ties_multi/2))/total_rounds_multi) * 100)
     print("""\x1B[0m
 ******* MULTIPLAYER *******
@@ -245,4 +221,4 @@ if total_rounds_multi > 0:
 Total Rounds: {}
     """.format(total_wins_multi,total_ties_multi,total_loses_multi,accuracy_multi,total_rounds_multi))
 
-input("\x1B[90m\x1B[3mPress <enter> to close\x1B[0m")
+input("\x1B[90m\x1B[3mPress <enter> to close\x1B[0m") # Allows user to view their stats before closing
